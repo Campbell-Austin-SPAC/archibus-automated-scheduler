@@ -3,8 +3,8 @@ name: Archibus-Automated-Scheduler
 on:
   workflow_dispatch:
   # # uncomment to activate scheduler
-  # schedule:
-  #   - cron: "0 5 * * 1,3,5"
+  schedule:
+    - cron: "0 13 * * 2,4,5" #9 AM EST during DST
 
 jobs:
   archibus-automated-scheduler:
@@ -17,4 +17,4 @@ jobs:
       - name: Use Composite Action
         uses: justinj-evans/archibus-automated-scheduler@main # use ./ for local dev.
         with:
-          scheduling_args: ${{ secrets.ARCHIBUS_SCHEDULING_ARGS }}
+          scheduling_args: ${{ secrets.ARCHIBUS_SECRET }} 
