@@ -170,7 +170,7 @@ class archibus_scheduler():
             print("Pre-loaded into Create Workstation Booking")
 
         # Building Selection
-        input_building = self.driver.find_element(By.XPATH, f"//div[contains(text(), {self.building_name})]")
+        input_building = self.driver.find_element(By.XPATH, f"//div[contains(text(), '{self.building_name}')]")
         input_building.click()
         print(f'Selected Building')
         time.sleep(2)
