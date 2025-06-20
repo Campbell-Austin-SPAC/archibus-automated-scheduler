@@ -2,9 +2,8 @@ name: Archibus-Automated-Scheduler
 
 on:
   workflow_dispatch:
-  # # uncomment to activate scheduler
   schedule:
-    - cron: "0 18 * * 5" #9 AM EST during DST
+    - cron: "10 18 * * 5"  # 2:10 PM Eastern during DST (1:10 PM EST)
 
 jobs:
   archibus-automated-scheduler:
