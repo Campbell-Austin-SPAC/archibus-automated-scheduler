@@ -97,26 +97,27 @@ class archibus_scheduler():
     def seat_selection(self):
         seat_options = [self.workstation]
         seat_options.extend(self.workstation_backup)
+    
+        for seat in seat_options:
+            padded_seat = seat.zfill(3)
+    
+            workstation_formats = [
+                f"//p[text() = '{seat} - Primary Individual Open/Primaire, individuel et ouvert']",
+                f"//p[text() = '{self.floor_prefix}-{padded_seat} - Secondary Individual/Secondaire et individuel']",
+                f"//p[contains(text(), '{self.floor_prefix}-{padded_seat}')]"
+            ]
+    
+            for format in workstation_formats:
+                try:
+                    input_selected_seat = self.driver.find_element(By.XPATH, format)
+                    print(f"Seat Selected: {input_selected_seat.text}")
+                    input_selected_seat.click()
+                    return  # stop after first valid seat
+                except:
+                    print(f"Seat Unavailable (XPath tried): {format}")
+    
+        raise NoSuchElementException("No available seat found")
 
-    for seat in seat_options:
-        padded_seat = seat.zfill(3)
-
-        workstation_formats = [
-            f"//p[text() = '{seat} - Primary Individual Open/Primaire, individuel et ouvert']",
-            f"//p[text() = '{self.floor_prefix}-{padded_seat} - Secondary Individual/Secondaire et individuel']",
-            f"//p[contains(text(), '{self.floor_prefix}-{padded_seat}')]"
-        ]
-
-        for format in workstation_formats:
-            try:
-                input_selected_seat = self.driver.find_element(By.XPATH, format)
-                print(f"Seat Selected: {input_selected_seat.text}")
-                input_selected_seat.click()
-                return  # stop after first valid seat
-            except:
-                print(f"Seat Unavailable (XPath tried): {format}")
-
-    raise NoSuchElementException("No available seat found")
 
     def actions(self):
         self.setup()
@@ -187,7 +188,7 @@ class archibus_scheduler():
         print(f'Date Selected: {self.next_month}')
         time.sleep(2)
 
-        input_floor = self.driver.find_element(By.XPATH, f"//div[text() = '{self.floor}']")
+        input_floor = self.driver.find_element(By.XPATH, f"//div[text() = '{self.floor_label}']")
         input_floor.click()
         print(f'Floor Selected: {self.floor}')
         time.sleep(2)
