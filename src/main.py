@@ -95,8 +95,8 @@ class archibus_scheduler():
             pass
 
     def seat_selection(self):
-    seat_options = [self.workstation]
-    seat_options.extend(self.workstation_backup)
+        seat_options = [self.workstation]
+        seat_options.extend(self.workstation_backup)
 
     for seat in seat_options:
         padded_seat = seat.zfill(3)
