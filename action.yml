@@ -7,9 +7,19 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # local dev.
+  runs: More actions
+  using: "composite"
+  steps:
     - name: Checkout composite action repository code
-      uses: ./composite-action-directory
+      uses: actions/checkout@v4
+      with:
+        repository: justinj-evans/archibus-automated-scheduler
+        clean: true
+        path: composite-action-directory 
+
+    # local dev.
+    # - name: Checkout composite action repository code
+    #   uses: ./composite-action-directory
 
     - name: Set up Python
       uses: actions/setup-python@v5
