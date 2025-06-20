@@ -1,103 +1,74 @@
 name: Archibus-Automated-Scheduler
-description: "Automated scheduler"
+description: "Automated Archibus scheduler using Selenium in Docker"
+
 inputs:
   scheduling_args:
-    description: "Arguments for the scheduler script."
+    description: "Full CLI argument string for main.py"
     required: true
+
 runs:
   using: "composite"
   steps:
-    - name: Checkout composite action repository code
-      uses: actions/checkout@v4
-      with:
-        repository: justinj-evans/archibus-automated-scheduler
-        clean: true
-        path: composite-action-directory 
-
-    # local dev.
-    - name: Checkout composite action repository code
-      uses: ./composite-action-directory
+    # ✅ If you use local dev, you don't really need to checkout here again
+    # because your workflow already does checkout.
+    # So this is optional or can be omitted entirely.
+    # - name: Checkout (optional for local dev)
+    #   uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.X
-          
+        python-version: 3.x
 
-    - name: Install dependencies
+    - name: Install Python dependencies
       run: python -m pip install -r composite-action-directory/requirements.txt
       shell: bash
-      
-    - name: Cache Python dependencies
+
+    - name: Cache pip dependencies
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-python-${{ hashFiles('**/composite-action-directory/requirements.txt') }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/composite-action-directory/requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-python-
+          ${{ runner.os }}-pip-
 
-    - name: Stop and Remove Selenium Container if already present
+    - name: Stop and Remove Selenium container if present
       run: |
         if [ "$(docker ps -q -f name=selenium)" ]; then
           docker stop selenium
           docker rm selenium
         else
-          echo "Selenium container is not running, skipping stop and remove."
+          echo "No Selenium container running"
         fi
       shell: bash
 
-    - name: Pull Selenium Docker Image
-      run: |
-        docker pull selenium/standalone-chrome:latest
+    - name: Pull Selenium Chrome Docker image
+      run: docker pull selenium/standalone-chrome:latest
       shell: bash
 
-    - name: Start Selenium Standalone Chrome
-      run: |
-        docker run -d --name selenium -p 4444:4444 --shm-size=2g selenium/standalone-chrome:latest
+    - name: Start Selenium Chrome container
+      run: docker run -d --name selenium -p 4444:4444 --shm-size=2g selenium/standalone-chrome:latest
       shell: bash
 
-    - name: Verify Selenium Container is Running
-      run: docker ps -a
-      shell: bash
-
-    - name: Check Full Selenium Logs
-      run: docker logs selenium
-      shell: bash
-
-    - name: Check if Port 4444 is in Use
-      run: netstat -tulnp | grep 4444 || echo "Port 4444 is free"
-      shell: bash
-
-    - name: Wait for Selenium to Start
+    - name: Wait for Selenium to become ready
       run: |
         curl -sSL https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o wait-for-it.sh
         chmod +x wait-for-it.sh
-        ./wait-for-it.sh localhost:4444 --timeout=30 -- echo "Selenium is ready!"
+        ./wait-for-it.sh localhost:4444 --timeout=30 -- echo "Selenium is ready"
       shell: bash
 
-    - name: Extra Wait for Selenium Readiness
-      run: sleep 10
+    - name: Extra wait for good measure
+      run: sleep 5
       shell: bash
 
-    - name: Debug Running Docker Containers
-      run: docker ps -a
-      shell: bash
-
-    - name: Get Selenium Logs
-      run: docker logs selenium
-      shell: bash
-
-    - name: Verify Selenium Readiness via API
-      run: curl -sSL http://localhost:4444/status || echo "Selenium API not responding"
-      shell: bash
-
-    - name: python-archibus-scheduler
+    - name: Run Archibus Scheduler Python script
       run: |
         python composite-action-directory/src/main.py ${{ inputs.scheduling_args }}
       shell: bash
 
-    - name: Stop and Remove Selenium Container
+    - name: Stop and Remove Selenium container
       run: |
         docker stop selenium
         docker rm selenium
       shell: bash
+
