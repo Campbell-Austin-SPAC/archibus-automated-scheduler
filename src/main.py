@@ -19,11 +19,11 @@ def parse_args():
     parser.add_argument('--username', type=str, help='Username (case-insensitive)')
     parser.add_argument('--password', type=str, help='Password (case-insensitive)')
     parser.add_argument('--building_name', type=str, help='Select a Building')
-    parser.add_argument('--floor', type=str, help='Floor Acronym Number, ex. JT01')
+    parser.add_argument('--floor_prefix', type=str, help='Floor prefix for seat labels, e.g., TD05')
+    parser.add_argument('--floor_label', type=str, help='Floor label for dropdown, e.g., 05')
     parser.add_argument('--workstation', type=str, help='WorkPoint-WorkStation')
-    parser.add_argument('--workstation_backup',type=str, default='[]', required=False, help='WorkPoint-WorkStation-Backup')
-    parser.add_argument('--advance_reservation',action='store_true', required=False, help='Book 4 weeks and one day ahead')
-
+    parser.add_argument('--workstation_backup', type=str, default='[]', required=False, help='WorkPoint-WorkStation-Backup')
+    parser.add_argument('--advance_reservation', action='store_true', required=False, help='Book 4 weeks and one day ahead')
     return parser.parse_args()
 
 class archibus_scheduler():
@@ -31,7 +31,8 @@ class archibus_scheduler():
         self.username = args.username
         self.password = args.password
         self.building_name = args.building_name.replace("-", " ")
-        self.floor = args.floor
+        self.floor_prefix = args.floor_prefix   # NEW: for seat labels
+        self.floor_label = args.floor_label     # NEW: for dropdown
         self.workstation = args.workstation
         self.workstation_backup = ast.literal_eval(args.workstation_backup)
         self.advance_reservation = args.advance_reservation
@@ -39,18 +40,18 @@ class archibus_scheduler():
         self.current_date = datetime.now().strftime("%Y-%m-%d")
 
         if self.advance_reservation:
-            self.next_month = str((datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(weeks=4, days=1)).strftime("%Y-%m-%d"))
-            self.next_month_day = str((datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(weeks=4, days=1)).strftime("%#d")).lstrip("0")
+            self.next_month = (datetime.now() + timedelta(weeks=4, days=1)).strftime("%Y-%m-%d")
         else:
-            self.next_month = str((datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(weeks=4)).strftime("%Y-%m-%d"))
-            self.next_month_day = str((datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(weeks=4)).strftime("%#d")).lstrip("0")
+            self.next_month = (datetime.now() + timedelta(weeks=4)).strftime("%Y-%m-%d")
 
+        self.next_month_day = str(int(self.next_month[-2:]))  # day part, unpadded
         self.seat_date = datetime.strptime(self.next_month, '%Y-%m-%d').strftime("Choose %A, %B %d, %Y")
         suffix = "th" if 11 <= int(self.next_month_day) <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(int(self.next_month_day) % 10, "th")
-        self.seat_date = self.seat_date.replace(f"{int(self.next_month_day):02d}", f"{int(self.next_month_day)}{suffix}",1)
+        self.seat_date = self.seat_date.replace(f"{int(self.next_month_day):02d}", f"{int(self.next_month_day)}{suffix}", 1)
 
-        if self.workstation == '051' and self.floor == 'TD05' and self.username != 'AUSTINC1':
+        if self.workstation == '101' and self.floor_prefix == 'JT07' and self.username != 'EVANJUS':
             raise Exception('Workstation is unavailable.')
+
 
     def setup(self):
         service = Service(ChromeDriverManager().install())
@@ -94,32 +95,28 @@ class archibus_scheduler():
             pass
 
     def seat_selection(self):
-        seat_options = [self.workstation]
-        seat_options.extend(self.workstation_backup)
-        seat_found = False
-        input_selected_seat = None
+    seat_options = [self.workstation]
+    seat_options.extend(self.workstation_backup)
 
-        for seat in seat_options:
-            if seat_found:
-                break
+    for seat in seat_options:
+        padded_seat = seat.zfill(3)
 
-            workstation_formats = [
-                f"//p[text() = '{seat} - Primary Individual Open/Primaire, individuel et ouvert']",
-                f"//p[text() = '{self.floor}-{int(seat):02} - Secondary Individual/Secondaire et individuel']"
-            ]
-            for format in workstation_formats:
-                try:
-                    input_selected_seat = self.driver.find_element(By.XPATH, format)
-                    print(f"Seat Selected: {input_selected_seat.text}")
-                    seat_found = True
-                    break
-                except:
-                    print(f"Seat Unavailable: {seat}")
+        workstation_formats = [
+            f"//p[text() = '{seat} - Primary Individual Open/Primaire, individuel et ouvert']",
+            f"//p[text() = '{self.floor_prefix}-{padded_seat} - Secondary Individual/Secondaire et individuel']",
+            f"//p[contains(text(), '{self.floor_prefix}-{padded_seat}')]"
+        ]
 
-        if input_selected_seat:
-            input_selected_seat.click()
-        else:
-            raise NoSuchElementException("No available seat found")
+        for format in workstation_formats:
+            try:
+                input_selected_seat = self.driver.find_element(By.XPATH, format)
+                print(f"Seat Selected: {input_selected_seat.text}")
+                input_selected_seat.click()
+                return  # stop after first valid seat
+            except:
+                print(f"Seat Unavailable (XPath tried): {format}")
+
+    raise NoSuchElementException("No available seat found")
 
     def actions(self):
         self.setup()
