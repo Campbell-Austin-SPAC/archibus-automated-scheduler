@@ -190,7 +190,7 @@ class archibus_scheduler():
 
         input_floor = self.driver.find_element(By.XPATH, f"//div[text() = '{self.floor_label}']")
         input_floor.click()
-        print(f'Floor Selected: {self.floor}')
+        print(f'Floor Selected: {self.floor_label}')
         time.sleep(2)
 
         input_search = self.driver.find_element(By.XPATH, "//button[text() = 'Search']")
