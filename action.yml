@@ -7,15 +7,11 @@ inputs:
 runs:
   using: "composite"
   steps:
-  runs: More actions
-  using: "composite"
-  steps:
-    - name: Checkout composite action repository code
+    # Remove the repository: field!
+    - name: Checkout self if needed
       uses: actions/checkout@v4
       with:
-        repository: justinj-evans/archibus-automated-scheduler
-        clean: true
-        path: composite-action-directory 
+        path: composite-action-directory
 
     # local dev.
     # - name: Checkout composite action repository code
