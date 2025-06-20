@@ -49,7 +49,7 @@ class archibus_scheduler():
         suffix = "th" if 11 <= int(self.next_month_day) <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(int(self.next_month_day) % 10, "th")
         self.seat_date = self.seat_date.replace(f"{int(self.next_month_day):02d}", f"{int(self.next_month_day)}{suffix}",1)
 
-        if self.workstation == '101' and self.floor == 'JT07' and self.username != 'EVANJUS':
+        if self.workstation == '051' and self.floor == 'TD05' and self.username != 'AUSTINC1':
             raise Exception('Workstation is unavailable.')
 
     def setup(self):
