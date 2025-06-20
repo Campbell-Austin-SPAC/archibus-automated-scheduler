@@ -9,28 +9,24 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # ✅ If you use local dev, you don't really need to checkout here again
-    # because your workflow already does checkout.
-    # So this is optional or can be omitted entirely.
-    # - name: Checkout (optional for local dev)
-    #   uses: actions/checkout@v4
+    # ✅ No checkout needed here since your workflow already does it
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: 3.x
 
-    - name: Install Python dependencies
-      run: python -m pip install -r composite-action-directory/requirements.txt
-      shell: bash
-
     - name: Cache pip dependencies
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/composite-action-directory/requirements.txt') }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
+
+    - name: Install Python dependencies
+      run: python -m pip install -r requirements.txt
+      shell: bash
 
     - name: Stop and Remove Selenium container if present
       run: |
@@ -62,8 +58,7 @@ runs:
       shell: bash
 
     - name: Run Archibus Scheduler Python script
-      run: |
-        python composite-action-directory/src/main.py ${{ inputs.scheduling_args }}
+      run: python src/main.py ${{ inputs.scheduling_args }}
       shell: bash
 
     - name: Stop and Remove Selenium container
@@ -71,4 +66,5 @@ runs:
         docker stop selenium
         docker rm selenium
       shell: bash
+
 
