@@ -3,7 +3,8 @@ name: Archibus-Automated-Scheduler
 on:
   workflow_dispatch:
   schedule:
-    - cron: "25 19 * * 5"  # 2:10 PM Eastern during DST (1:10 PM EST)
+   - cron: "10 14 * * 5"  # 10:10 AM Eastern (EDT) / 9:10 AM EST
+
 
 jobs:
   archibus-automated-scheduler:
