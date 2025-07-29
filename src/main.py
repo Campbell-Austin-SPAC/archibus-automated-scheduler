@@ -122,6 +122,7 @@ class archibus_scheduler():
     def actions(self):
         self.setup()
         self.driver.get("https://pathfinder.horizantsolutions.com/archibus/schema/ab-products/essential/workplace/index.html")
+        print(self.driver.page_source)
 
         input_username = WebDriverWait(self.driver, 15).until(
             EC.presence_of_element_located((By.ID, "logon-user-input"))
