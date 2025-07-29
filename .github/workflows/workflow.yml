@@ -3,7 +3,7 @@ name: Archibus-Automated-Scheduler
 on:
   workflow_dispatch:
   schedule:
-    - cron: "45 14 * * *"  # 11:45 AM Eastern (EDT)
+    - cron: "45 15 * * 2"  # 11:45 AM Eastern (EDT)
 
 
 
