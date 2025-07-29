@@ -3,7 +3,7 @@ name: Archibus-Automated-Scheduler
 on:
   workflow_dispatch:
   schedule:
-    - cron: "45 15 * * 5"  # 11:45 AM Eastern (EDT)
+    - cron: "45 14 * * *"  # 11:45 AM Eastern (EDT)
 
 
 
@@ -18,4 +18,4 @@ jobs:
       - name: Use Composite Action
         uses: ./ # use ./ for local dev.
         with:
-          scheduling_args: ${{ secrets.ORLEANS_TEST_SECRET }} 
+          scheduling_args: ${{ secrets.ARCHIBUS_SECRET }} 
